@@ -1,0 +1,58 @@
+name: Discord Commit Notification
+
+on:
+  push:
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Get short SHA
+        id: sha
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          echo "sha_short=$SHORT_SHA" >> $GITHUB_OUTPUT
+      
+      - name: Get actor avatar
+        id: avatar
+        run: |
+          AVATAR_URL=$(curl -s "https://api.github.com/users/${{ github.actor }}" | jq -r '.avatar_url')
+          echo "avatar_url=$AVATAR_URL" >> $GITHUB_OUTPUT
+      
+      - name: Get commit title
+        id: commit_title
+        run: |
+          COMMIT_TITLE=$(echo "${{ github.event.head_commit.message }}" | head -n1)
+          echo "title=$COMMIT_TITLE" >> $GITHUB_OUTPUT
+      
+      - name: Create Discord payload
+        id: payload
+        run: |
+          jq -n \
+            --arg avatar_url "https://images.icon-icons.com/1476/PNG/512/github_101792.png" \
+            --arg actor "${{ github.actor }}" \
+            --arg actor_avatar "${{ steps.avatar.outputs.avatar_url }}" \
+            --arg repo "${{ github.repository }}" \
+            --arg title "${{ steps.commit_title.outputs.title }}" \
+            --arg sha "${{ steps.sha.outputs.sha_short }}" \
+            --arg full_sha "${{ github.sha }}" \
+            --arg timestamp "${{ github.event.head_commit.timestamp }}" \
+            '{
+              embeds: [{
+                color: 3066993,
+                thumbnail: { url: $avatar_url },
+                author: { name: $actor, icon_url: $actor_avatar },
+                title: $repo,
+                description: "**\($title)**\n\n[\($sha)](https://github.com/\($repo)/commit/\($full_sha))",
+                timestamp: $timestamp
+              }]
+            }' > payload.json
+          echo "Payload content:"
+          cat payload.json
+      
+      - name: Send Discord notification
+        run: |
+          curl -v -H "Content-Type: application/json" \
+               -d @payload.json \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
