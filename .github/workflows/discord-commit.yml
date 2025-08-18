@@ -9,7 +9,8 @@ jobs:
   notify-discord:
     runs-on: ubuntu-latest
     # Skip if this is a version-related commit or release-related
-    if: "!startsWith(github.event.head_commit.message, 'chore: release') && !startsWith(github.event.head_commit.message, 'feat: release') && !startsWith(github.event.head_commit.message, 'Release v') && !startsWith(github.event.head_commit.message, 'v1.') && !startsWith(github.event.head_commit.message, 'v2.') && !startsWith(github.event.head_commit.message, 'v3.') && !startsWith(github.event.head_commit.message, 'v4.') && !startsWith(github.event.head_commit.message, 'v5.') && !startsWith(github.event.head_commit.message, 'v6.') && !startsWith(github.event.head_commit.message, 'v7.') && !startsWith(github.event.head_commit.message, 'v8.') && !startsWith(github.event.head_commit.message, 'v9.') && !startsWith(github.event.head_commit.message, 'v10.') && github.event.head_commit.parents[1] == null && github.event.head_commit.parents[0] != null"    
+    if: "!startsWith(github.event.head_commit.message, 'chore: release') && !startsWith(github.event.head_commit.message, 'feat: release') && !startsWith(github.event.head_commit.message, 'Release v') && !startsWith(github.event.head_commit.message, 'v1.') && !startsWith(github.event.head_commit.message, 'v2.') && !startsWith(github.event.head_commit.message, 'v3.') && !startsWith(github.event.head_commit.message, 'v4.') && !startsWith(github.event.head_commit.message, 'v5.') && !startsWith(github.event.head_commit.message, 'v6.') && !startsWith(github.event.head_commit.message, 'v7.') && !startsWith(github.event.head_commit.message, 'v8.') && !startsWith(github.event.head_commit.message, 'v9.') && !startsWith(github.event.head_commit.message, 'v10.')"
+    
     steps:
       - name: Get short SHA
         id: sha
