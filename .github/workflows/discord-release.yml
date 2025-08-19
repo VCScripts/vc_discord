@@ -25,7 +25,6 @@ jobs:
         id: release
         run: |
           echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-          echo "release_name=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
           echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
           
           # Get the previous tag for comparison
@@ -47,7 +46,6 @@ jobs:
             --arg repo "${{ github.repository }}" \
             --arg title "New Release ${{ steps.release.outputs.tag_name }}" \
             --arg sha "${{ steps.sha.outputs.sha_short }}" \
-            --arg full_sha "${{ github.sha }}" \
             --arg timestamp "${{ github.event.release.published_at }}" \
             --arg tag_name "${{ steps.release.outputs.tag_name }}" \
             --arg prev_tag "${{ steps.release.outputs.prev_tag }}" \
@@ -58,7 +56,7 @@ jobs:
                 thumbnail: { url: $avatar_url },
                 author: { name: $actor, icon_url: $actor_avatar },
                 title: $title,
-                description: ("**Release:** " + $tag_name + "\n\n**Full Changelog:** [Compare changes](https://github.com/\($repo)/compare/\($prev_tag)...\($tag_name))\n\n**View Release:** [Get Release](" + $release_url + ")"),
+                description: ("**Release:** " + $tag_name + "\n**Previous:** " + $prev_tag + "\n\n**View Release:** [Get Release](" + $release_url + ")"),
                 timestamp: $timestamp
               }]
             }' > payload.json
