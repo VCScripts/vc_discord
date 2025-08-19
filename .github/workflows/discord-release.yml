@@ -27,15 +27,21 @@ jobs:
           echo "tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
           echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
           
-          # Get the previous tag for comparison
-          PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.event.release.tag_name }}^ 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            # If no previous tag, use the initial commit hash
+          # Get the previous tag for comparison - use a more reliable method
+          CURRENT_TAG="${{ github.event.release.tag_name }}"
+          
+          # Get all tags sorted by version, find the one before current
+          PREV_TAG=$(git tag --sort=-version:refname | grep -A1 "$CURRENT_TAG" | tail -1)
+          
+          if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$CURRENT_TAG" ]; then
+            # If no previous tag found, use the initial commit hash
             INITIAL_COMMIT=$(git rev-list --max-parents=0 HEAD | head -1)
             echo "prev_tag=$INITIAL_COMMIT" >> $GITHUB_OUTPUT
           else
             echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
           fi
+          
+          echo "Debug: Current tag: $CURRENT_TAG, Previous tag: $PREV_TAG"
       
       - name: Create Discord payload
         id: payload
