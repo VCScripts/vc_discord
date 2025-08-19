@@ -58,7 +58,7 @@ jobs:
                 thumbnail: { url: $avatar_url },
                 author: { name: $actor, icon_url: $actor_avatar },
                 title: $title,
-                description: ("**Full Changelog:** [Compare changes](https://github.com/\($repo)/compare/\($prev_tag)...\($tag_name))\n\n**View Release:** [Get Release](" + $release_url + ")"),
+                description: ("**Release:** " + $tag_name + "\n\n**Full Changelog:** [Compare changes](https://github.com/\($repo)/compare/\($prev_tag)...\($tag_name))\n\n**View Release:** [Get Release](" + $release_url + ")"),
                 timestamp: $timestamp
               }]
             }' > payload.json
