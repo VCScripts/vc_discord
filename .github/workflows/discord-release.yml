@@ -30,8 +30,9 @@ jobs:
           # Get the previous tag for comparison
           PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.event.release.tag_name }}^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
-            # If no previous tag, compare with initial commit
-            echo "prev_tag=initial" >> $GITHUB_OUTPUT
+            # If no previous tag, use the initial commit hash
+            INITIAL_COMMIT=$(git rev-list --max-parents=0 HEAD | head -1)
+            echo "prev_tag=$INITIAL_COMMIT" >> $GITHUB_OUTPUT
           else
             echo "prev_tag=$PREV_TAG" >> $GITHUB_OUTPUT
           fi
