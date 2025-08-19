@@ -28,13 +28,6 @@ jobs:
           echo "release_name=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
           echo "release_url=${{ github.event.release.html_url }}" >> $GITHUB_OUTPUT
           
-          # Completely sanitize the release body to avoid GitHub Actions output issues
-          # Remove all @ symbols, GitHub URLs, and problematic characters
-          CLEAN_BODY=$(echo "${{ github.event.release.body }}" | sed 's/@/at/g' | sed 's|https://github.com/[^[:space:]]*||g' | sed 's|github.com/[^[:space:]]*||g' | sed 's|pull/[0-9]*||g' | sed 's|compare/[^[:space:]]*||g')
-          echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$CLEAN_BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
           # Get the previous tag for comparison
           PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.event.release.tag_name }}^ 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
