@@ -2,6 +2,30 @@
 
 A Discord Rich Presence script for FiveM servers that displays player information and activity status.
 
+## Supported Frameworks
+
+This script automatically detects and supports the following FiveM frameworks:
+
+- **QBox** (`qbx_core`) - Primary support with automatic detection
+- **QBCore** (`qb-core`) - Full compatibility with automatic detection  
+- **ESX** (`es_extended`) - Full compatibility with automatic detection
+
+The framework detection runs automatically in the order: QBox → QBCore → ESX
+
+## Framework Override
+
+You can force a specific framework using the convar:
+
+# Force QBox framework
+`set vc_discord_framework qbox`
+
+# Force QBCore framework  
+`set vc_discord_framework qbcore`
+
+# Force ESX framework
+`set vc_discord_framework esx`
+
+
 ## Installation
 
 1. Place the `vc_discord` folder in your servers directory
