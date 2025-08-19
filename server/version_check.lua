@@ -11,7 +11,7 @@ local function compareVersions(current, newest)
     local currentParts = parseVersion(current)
     local newestParts = parseVersion(newest)
     local maxLen = math.max(#currentParts, #newestParts)
-    
+
     for i = 1, maxLen do
         local c = currentParts[i] or 0
         local n = newestParts[i] or 0
@@ -24,10 +24,10 @@ end
 
 function CheckVCDiscordVersion()
     if not IsDuplicityVersion() then return end
-    
+
     CreateThread(function()
         Wait(4000)
-        
+
         local currentVersionRaw = GetResourceMetadata("vc_discord", 'version', 0)
         if not currentVersionRaw or currentVersionRaw == "unknown" then
             local manifest = LoadResourceFile("vc_discord", "fxmanifest.lua")
@@ -35,12 +35,12 @@ function CheckVCDiscordVersion()
                 currentVersionRaw = string.match(manifest, 'version%s*[\'"]([^\'"]+)[\'"]')
             end
         end
-        
+
         if not currentVersionRaw then
             print("^1Unable to determine current version for ^7'^3vc_discord^7'")
             return
         end
-        
+
         PerformHttpRequest('https://api.github.com/repos/VCScripts/vc_discord/releases/latest', function(err, body, headers)
             if not body then
                 print("^1Unable to run version check for ^7'^3vc_discord^7' (^3"..currentVersionRaw.."^7)")
