@@ -1,5 +1,3 @@
-local QBCore = exports['qb-core']:GetCoreObject()
-
 local GetPlayerName = GetPlayerName
 local GetPlayerServerId = GetPlayerServerId
 local GetPlayerPed = GetPlayerPed
@@ -17,19 +15,45 @@ local PlayerId = PlayerId
 local GetVehiclePedIsIn = GetVehiclePedIsIn
 local GetVehicleClass = GetVehicleClass
 local tostring = tostring
+local pairs = pairs
+local type = type
 
 local playerId = nil
 local playerName = nil
+local playerData = nil
 local lastUpdate = 0
 local lastCoords = vector3(0, 0, 0)
 local lastActivity = ""
 local lastStreet = ""
+local dataRequested = false
+local dataRequestTime = 0
+local lastPresenceText = ""
+
+local vehicleNames = {
+    [0] = "a car",
+    [1] = "a motorcycle",
+    [2] = "a truck",
+    [3] = "a car",
+    [4] = "a car",
+    [5] = "a car",
+    [6] = "a car",
+    [7] = "a motorcycle",
+    [8] = "a motorcycle",
+    [9] = "a boat",
+    [10] = "a boat",
+    [11] = "a helicopter",
+    [12] = "a plane",
+    [13] = "a bike",
+    [14] = "a boat",
+    [15] = "a train",
+    [16] = "a submarine"
+}
 
 local function InitializeDiscord()
     SetDiscordAppId(tostring(Config.appId))
     SetDiscordRichPresenceAsset(Config.largeImage)
     SetDiscordRichPresenceAssetText(Config.largeImageText or Config.richPresenceText)
-    
+
     if Config.buttons and Config.buttons[1] and Config.buttons[1].enabled then
         SetDiscordRichPresenceAction(0, Config.buttons[1].label, Config.buttons[1].url)
     end
@@ -43,34 +67,14 @@ local function GetPlayerActivity(player, speed, inVehicle)
         if Config.enableDetailedVehicles then
             local vehicle = GetVehiclePedIsIn(player, false)
             if vehicle ~= 0 then
-                local vehicleClass = GetVehicleClass(vehicle)
-                local vehicleNames = {
-                    [0] = "a car",
-                    [1] = "a motorcycle", 
-                    [2] = "a truck",
-                    [3] = "a car",
-                    [4] = "a car",
-                    [5] = "a car",
-                    [6] = "a car",
-                    [7] = "a motorcycle",
-                    [8] = "a motorcycle",
-                    [9] = "a boat",
-                    [10] = "a boat",
-                    [11] = "a helicopter",
-                    [12] = "a plane",
-                    [13] = "a bike",
-                    [14] = "a boat",
-                    [15] = "a train",
-                    [16] = "a submarine"
-                }
-                local vehicleType = vehicleNames[vehicleClass] or "a vehicle"
+                local vehicleType = vehicleNames[GetVehicleClass(vehicle)] or "a vehicle"
                 return "Driving " .. vehicleType
             end
         end
         return "Driving"
     end
-    
-    if Config.enableSpeedBasedActivity then
+
+    if Config.showActivity then
         if speed > 2.0 then
             return "Running"
         elseif speed > 0.5 then
@@ -86,28 +90,47 @@ local function GetPlayerActivity(player, speed, inVehicle)
 end
 
 local function GetStreetName(coords)
-    if not coords or coords.x == 0 and coords.y == 0 and coords.z == 0 then
+    if not coords or (coords.x == 0 and coords.y == 0 and coords.z == 0) then
         return Config.fallbackTexts.unknownLocation or "Unknown Location"
     end
-    
+
     local streetHash = GetStreetNameAtCoord(coords.x, coords.y, coords.z)
     if streetHash == 0 then
         return Config.fallbackTexts.unknownStreet or "Unknown Street"
     end
-    
+
     local streetName = GetStreetNameFromHashKey(streetHash)
     return streetName ~= "" and streetName or (Config.fallbackTexts.unknownStreet or "Unknown Street")
 end
 
+local function RequestPlayerData()
+    if not dataRequested then
+        TriggerServerEvent('vc_discord:getPlayerData')
+        dataRequested = true
+        dataRequestTime = GetGameTimer()
+    end
+end
+
+RegisterNetEvent('vc_discord:receivePlayerData')
+AddEventHandler('vc_discord:receivePlayerData', function(data)
+    playerData = data
+    dataRequested = false
+end)
+
 local function UpdateDiscordPresence()
     local currentTime = GetGameTimer()
-    
+
     if currentTime - lastUpdate < 10000 then
         return
     end
-    
-    local myData = QBCore.Functions.GetPlayerData()
-    if not myData or not myData.charinfo then
+
+    if dataRequested and (currentTime - dataRequestTime) > 10000 then
+        dataRequested = false
+        RequestPlayerData()
+        return
+    end
+
+    if not playerData then
         local loadingText = Config.fallbackTexts.loading or "Loading..."
         if Config.showPlayerId then
             loadingText = loadingText .. " [ID: " .. (playerId or "Unknown") .. "]"
@@ -115,26 +138,39 @@ local function UpdateDiscordPresence()
         if Config.showPlayerName then
             loadingText = loadingText .. " " .. (playerName or "Unknown")
         end
-        SetRichPresence(loadingText)
+
+        if loadingText ~= lastPresenceText then
+            SetRichPresence(loadingText)
+            lastPresenceText = loadingText
+        end
+
+        if not dataRequested then
+            RequestPlayerData()
+        end
         return
     end
-    
+
     local char = ""
     if Config.showCharacterName then
-        char = myData.charinfo.firstname and myData.charinfo.lastname and 
-               (myData.charinfo.firstname .. " " .. myData.charinfo.lastname) or (Config.fallbackTexts.unknownPlayer or "Unknown Player")
+        if playerData.charinfo and playerData.charinfo.firstname and playerData.charinfo.lastname then
+            char = playerData.charinfo.firstname .. " " .. playerData.charinfo.lastname
+        elseif playerData.name then
+            char = playerData.name
+        else
+            char = Config.fallbackTexts.unknownPlayer or "Unknown Player"
+        end
     end
-    
+
     local player = GetPlayerPed(PlayerId())
     local coords = GetEntityCoords(player)
     local speed = GetEntitySpeed(player)
     local inVehicle = IsPedInAnyVehicle(player, false)
-    
+
     local activity = GetPlayerActivity(player, speed, inVehicle)
     local streetName = GetStreetName(coords)
-    
+
     local shouldUpdate = false
-    
+
     if Config.showActivity and activity ~= lastActivity then
         shouldUpdate = true
     end
@@ -144,9 +180,8 @@ local function UpdateDiscordPresence()
     if #(coords - lastCoords) > (Config.movementThreshold or 50.0) then
         shouldUpdate = true
     end
-    
+
     if shouldUpdate then
-        
         local statusText = ""
         if Config.showCharacterName and char ~= "" then
             statusText = char .. " is "
@@ -160,7 +195,7 @@ local function UpdateDiscordPresence()
             end
             statusText = statusText .. streetName
         end
-        
+
         local presenceText = ""
         if Config.showPlayerId and Config.showPlayerName then
             presenceText = "[ID: " .. playerId .. " | " .. playerName .. "]"
@@ -169,14 +204,18 @@ local function UpdateDiscordPresence()
         elseif Config.showPlayerName then
             presenceText = "[" .. playerName .. "]"
         end
+
         if presenceText ~= "" then
             presenceText = presenceText .. " " .. statusText
         else
             presenceText = statusText or ""
         end
-        
-        SetRichPresence(presenceText)
-        
+
+        if presenceText ~= lastPresenceText then
+            SetRichPresence(presenceText)
+            lastPresenceText = presenceText
+        end
+
         lastActivity = activity
         lastStreet = streetName
         lastCoords = coords
@@ -186,17 +225,19 @@ end
 
 Citizen.CreateThread(function()
     InitializeDiscord()
-    
+
     playerId = GetPlayerServerId(PlayerId())
     playerName = GetPlayerName(PlayerId())
-    
+
     while true do
         local currentPlayerId = GetPlayerServerId(PlayerId())
         if currentPlayerId ~= playerId then
             playerId = currentPlayerId
             playerName = GetPlayerName(PlayerId())
+            dataRequested = false
+            RequestPlayerData()
         end
-        
+
         UpdateDiscordPresence()
         Citizen.Wait(Config.updateInterval or 5000)
     end
