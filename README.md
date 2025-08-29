@@ -56,7 +56,36 @@ Edit the `config.lua` file to customize:
 - **Character Name**: Show/hide character's first and last name
 - **Activity**: Show/hide player activity (driving, walking, etc.)
 - **Street Name**: Show/hide current street location
+- **Player Count**: Show/hide current player count and maximum players
 
 ### Performance Settings
 - Update intervals and movement thresholds
 - Vehicle detection and speed-based activity options
+
+## Player Count Feature
+
+The script includes a real-time player count display that shows current players vs. maximum capacity:
+
+- **Format**: `Players: X/Y` (e.g., "Players: 15/32")
+- **Update Frequency**: Updates every 30 seconds for real-time accuracy
+- **Configuration**: Enable/disable via `showPlayerCount` in config
+- **Max Players**: Uses `MaxPlayers` from config or server convar `sv_maxclients`
+- **Display**: Player count appears on a separate line below player activity and location
+
+### Player Count Configuration
+
+```lua
+-- In config.lua
+showPlayerCount = true,      -- Enable player count display
+MaxPlayers = 32,            -- Fallback max players (only used if sv_maxclients is not set)
+```
+
+**Max Players Priority:**
+1. **Server Convar**: `sv_maxclients` (highest priority)
+2. **Config Fallback**: `Config.MaxPlayers` (only used if server convar is not set)
+
+**Example Server Configuration:**
+```cfg
+# In your server.cfg
+sv_maxclients 64
+```

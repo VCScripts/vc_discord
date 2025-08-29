@@ -111,10 +111,24 @@ local function RequestPlayerData()
     end
 end
 
+local function RequestPlayerCount()
+    if Config.showPlayerCount then
+        TriggerServerEvent('vc_discord:getPlayerCount')
+    end
+end
+
 RegisterNetEvent('vc_discord:receivePlayerData')
 AddEventHandler('vc_discord:receivePlayerData', function(data)
     playerData = data
     dataRequested = false
+end)
+
+RegisterNetEvent('vc_discord:receivePlayerCount')
+AddEventHandler('vc_discord:receivePlayerCount', function(count, max)
+    if playerData then
+        playerData.playerCount = count
+        playerData.maxPlayers = max
+    end
 end)
 
 local function UpdateDiscordPresence()
@@ -132,13 +146,16 @@ local function UpdateDiscordPresence()
 
     if not playerData then
         local loadingText = Config.fallbackTexts.loading or "Loading..."
-        if Config.showPlayerId then
+        if Config.showPlayerId and Config.showPlayerName then
+            loadingText = loadingText .. " [ID: " .. (playerId or "Unknown") .. " | User: " .. (playerName or "Unknown") .. "]"
+        elseif Config.showPlayerId then
             loadingText = loadingText .. " [ID: " .. (playerId or "Unknown") .. "]"
-        end
-        if Config.showPlayerName then
-            loadingText = loadingText .. " " .. (playerName or "Unknown")
+        elseif Config.showPlayerName then
+            loadingText = loadingText .. " [User: " .. (playerName or "Unknown") .. "]"
         end
 
+
+        
         if loadingText ~= lastPresenceText then
             SetRichPresence(loadingText)
             lastPresenceText = loadingText
@@ -198,7 +215,7 @@ local function UpdateDiscordPresence()
 
         local presenceText = ""
         if Config.showPlayerId and Config.showPlayerName then
-            presenceText = "[ID: " .. playerId .. " | " .. playerName .. "]"
+            presenceText = "[ID: " .. playerId .. " | User: " .. playerName .. "]"
         elseif Config.showPlayerId then
             presenceText = "[ID: " .. playerId .. "]"
         elseif Config.showPlayerName then
@@ -212,7 +229,15 @@ local function UpdateDiscordPresence()
         end
 
         if presenceText ~= lastPresenceText then
-            SetRichPresence(presenceText)
+            -- Use Discord's separate details and state fields for proper formatting
+            local detailsText = presenceText
+            local stateText = ""
+            
+            if Config.showPlayerCount and playerData and playerData.playerCount then
+                stateText = "Players: " .. playerData.playerCount .. "/" .. (playerData.maxPlayers or Config.MaxPlayers)
+            end
+            
+            SetRichPresence(stateText .. " \n " .. detailsText)
             lastPresenceText = presenceText
         end
 
@@ -240,5 +265,15 @@ Citizen.CreateThread(function()
 
         UpdateDiscordPresence()
         Citizen.Wait(Config.updateInterval or 5000)
+    end
+end)
+
+-- Separate thread for more frequent player count updates
+Citizen.CreateThread(function()
+    if Config.showPlayerCount then
+        while true do
+            RequestPlayerCount()
+            Citizen.Wait(Config.updateInterval or 5000)
+        end
     end
 end)
