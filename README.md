@@ -89,3 +89,25 @@ MaxPlayers = 32,            -- Fallback max players (only used if sv_maxclients 
 # In your server.cfg
 sv_maxclients 64
 ```
+
+## Screenshots  
+
+- Player ID and CFX Name + Player Count:
+
+<img width="436" height="151" alt="image" src="https://github.com/user-attachments/assets/d0b13266-ada8-44f5-8f5c-eac6ba195fb8" />
+
+- Player ID and CFX Name and Character Name + Player Count
+
+<img width="440" height="163" alt="image" src="https://github.com/user-attachments/assets/336ec04f-d4cc-41e7-8786-aa11a71c943c" />
+
+- Player ID and CFX Name and Character Name and Street Name + Player Count
+
+<img width="447" height="161" alt="image" src="https://github.com/user-attachments/assets/00e22821-3ef1-467a-a965-889cec3f4855" />
+
+- All options enabled (Standing)
+  
+<img width="456" height="159" alt="image" src="https://github.com/user-attachments/assets/4c3d43a5-e70f-4df5-9cc9-1a02fd9c66cf" />
+
+- All options enabled (Driving)
+  
+<img width="454" height="161" alt="image" src="https://github.com/user-attachments/assets/ba42e3eb-206f-4cfb-9529-d085028e1759" />

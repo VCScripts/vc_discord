@@ -4,7 +4,7 @@ game 'gta5'
 name 'vc_discord'
 author 'Voci'
 description 'Enhanced Discord Rich Presence for FiveM servers with real-time player activity and location tracking'
-version '1.1.1'
+version '1.1.2'
 
 server_scripts {
     'server/version_check.lua',

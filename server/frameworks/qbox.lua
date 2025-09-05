@@ -16,7 +16,7 @@ function QBox.GetPlayerData(source)
     local success, result = pcall(function()
         if exports['qbx_core'] then
             local player = exports['qbx_core']:GetPlayer(source)
-            
+
             if player then
                 if player.PlayerData then
                     if player.PlayerData.charinfo then
@@ -29,7 +29,7 @@ function QBox.GetPlayerData(source)
         end
         return nil
     end)
-    
+
     if success then
         return result
     else
