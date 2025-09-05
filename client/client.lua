@@ -155,7 +155,7 @@ local function UpdateDiscordPresence()
         end
 
 
-        
+
         if loadingText ~= lastPresenceText then
             SetRichPresence(loadingText)
             lastPresenceText = loadingText
@@ -201,13 +201,18 @@ local function UpdateDiscordPresence()
     if shouldUpdate then
         local statusText = ""
         if Config.showCharacterName and char ~= "" then
-            statusText = char .. " is "
+            statusText = char
+            if Config.showActivity or Config.showStreetName then
+                statusText = statusText .. " is "
+            end
         end
         if Config.showActivity then
             statusText = statusText .. activity
         end
         if Config.showStreetName then
             if Config.showActivity then
+                statusText = statusText .. " on "
+            elseif Config.showCharacterName and char ~= "" then
                 statusText = statusText .. " on "
             end
             statusText = statusText .. streetName
@@ -229,14 +234,13 @@ local function UpdateDiscordPresence()
         end
 
         if presenceText ~= lastPresenceText then
-            -- Use Discord's separate details and state fields for proper formatting
             local detailsText = presenceText
             local stateText = ""
-            
+
             if Config.showPlayerCount and playerData and playerData.playerCount then
                 stateText = "Players: " .. playerData.playerCount .. "/" .. (playerData.maxPlayers or Config.MaxPlayers)
             end
-            
+
             SetRichPresence(stateText .. " \n " .. detailsText)
             lastPresenceText = presenceText
         end
@@ -263,17 +267,11 @@ Citizen.CreateThread(function()
             RequestPlayerData()
         end
 
+        if Config.showPlayerCount then
+            RequestPlayerCount()
+        end
+
         UpdateDiscordPresence()
         Citizen.Wait(Config.updateInterval or 5000)
-    end
-end)
-
--- Separate thread for more frequent player count updates
-Citizen.CreateThread(function()
-    if Config.showPlayerCount then
-        while true do
-            RequestPlayerCount()
-            Citizen.Wait(Config.updateInterval or 5000)
-        end
     end
 end)

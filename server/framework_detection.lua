@@ -151,31 +151,30 @@ AddEventHandler('vc_discord:getPlayerData', function()
     end
 
     local playerData = Framework.GetPlayerData(source)
-    
-    -- Add player count if enabled in config
+
     if Config and Config.showPlayerCount then
         local playerCount = #GetPlayers()
         local maxPlayers = GetConvarInt('sv_maxclients', Config.MaxPlayers)
-        
+
         if not playerData then
             playerData = {}
         end
-        
+
         playerData.playerCount = playerCount
         playerData.maxPlayers = maxPlayers
     end
-    
+
     TriggerClientEvent('vc_discord:receivePlayerData', source, playerData)
 end)
 
 RegisterNetEvent('vc_discord:getPlayerCount')
 AddEventHandler('vc_discord:getPlayerCount', function()
     local source = source
-    
+
     if Config and Config.showPlayerCount then
         local playerCount = #GetPlayers()
         local maxPlayers = GetConvarInt('sv_maxclients', Config.MaxPlayers)
-        
+
         TriggerClientEvent('vc_discord:receivePlayerCount', source, playerCount, maxPlayers)
     end
 end)
