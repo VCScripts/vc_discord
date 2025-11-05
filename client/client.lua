@@ -241,7 +241,14 @@ local function UpdateDiscordPresence()
                 stateText = "Players: " .. playerData.playerCount .. "/" .. (playerData.maxPlayers or Config.MaxPlayers)
             end
 
-            SetRichPresence(stateText .. " \n " .. detailsText)
+            local finalPresenceText = ""
+            if stateText ~= "" then
+                finalPresenceText = stateText .. " \n " .. detailsText
+            else
+                finalPresenceText = detailsText
+            end
+
+            SetRichPresence(finalPresenceText)
             lastPresenceText = presenceText
         end
 
